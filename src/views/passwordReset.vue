@@ -1,66 +1,41 @@
+<!-- eslint-disable -->
 <template>
   <div class="form-center">
     <div class="login">
-      <img alt="Vue logo" src="../assets/logo.png" />
-      <br />
-      <h3>SAFE TRACK</h3>
-      <p>Your personal security system</p>
-      <br />
-      <!-- <div class="form-label">
-        <span>Sign In</span>
-      </div> -->
+      <div class="form-label">
+        <span>Reset Password</span>
+      </div>
 
       <div class="form-container">
         <input type="text" placeholder="Email Address" v-model="email" />
-        <input type="password" placeholder="Password" v-model="password" />
-        <button @click="loginUser">Login</button>
-        <router-link class="router" to="/passwordReset"
-          >Forgot Password</router-link
-        >
+        <button @click="resetPassword">Login</button>
+        <router-link class="router" to="/">Login</router-link>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+/* eslint-disable */
 import { passAuth } from "../firebase.service";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { getDatabase, ref as refData, child, get } from "firebase/database";
+import { sendPasswordResetEmail } from "firebase/auth";
 import Router from "../router";
 export default {
   data() {
     return {
       email: "",
-      password: "",
     };
   },
 
   methods: {
-    loginUser() {
-      signInWithEmailAndPassword(passAuth(), this.email, this.password)
-        .then((result) => {
-          const dbRef = refData(getDatabase());
-          get(child(dbRef, `Accounts/${result.user.uid}`))
-            .then((snapshot) => {
-              if (snapshot.exists()) {
-                let result = snapshot.val();
-                console.log(result.admin);
-                if (result.admin === true) {
-                  Router.push("dashboard");
-                } else {
-                  alert("Not admin");
-                }
-              } else {
-                console.log("No data available");
-              }
-            })
-            .catch((error) => {
-              console.error(error);
-            });
-        })
-        .catch(() => {
-          alert("Wrong Password or Username");
-        });
+    resetPassword() {
+      sendPasswordResetEmail(passAuth(), this.email)
+      .then(() => {
+        alert("Reset Succesful continue to login");
+      })
+      .catch((error) => {
+        alert("ERROR" ,error);
+      });
     },
   },
 };
