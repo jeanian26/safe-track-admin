@@ -28,6 +28,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { getDatabase, ref as refData, child, get } from "firebase/database";
 import Router from "../router";
 export default {
+  name: "HomeNavigation",
   data() {
     return {
       email: "",

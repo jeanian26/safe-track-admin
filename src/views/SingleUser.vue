@@ -1,14 +1,14 @@
 <template>
   <div class="container">
     <div class="navbar-container">
-      <navbar></navbar>
+      <navBar></navBar>
       <pageHeader page="User" :user="user"></pageHeader>
     </div>
     <div class="page-container">
       <div class="user-profile-container">
         <div class="table-container">
           <h3>User Details</h3>
-          <table class="user-details-table">
+          <table class="user-details-table" >
             <tr>
               <td><strong>User ID:</strong></td>
               <td>{{ user }}</td>
@@ -72,7 +72,7 @@
           </table>
           <div class="button-container">
             <button @click='updateAccounts'>SAVE</button>
-            <button @click='socialNetwork'>View Network</button>
+            <button @click='socialNetwork'>VIEW NETWORK</button>
           </div>
         </div>
       </div>
@@ -80,20 +80,20 @@
   </div>
 </template>
 <script>
-  import navbar from "@/components/navbar.vue";
+  import navBar from "@/components/navbar.vue";
   import pageHeader from "@/components/page-header.vue";
   import { getDatabase, ref as refData, child, get, update } from "firebase/database";
 
   export default {
-    name: "Dashboard",
+    name: "Dash-board",
     components: {
-      navbar,
+      navBar,
       pageHeader,
     },
     data() {
       return {
         user: this.$route.params.id,
-        pincode: true,
+        pincode: false,
         fingerprint: false,
         admin: false,
         email: "",
@@ -250,7 +250,7 @@
 
   .user-details-table td,
   .user-details-table th {
-    border: none;
+    border: none !important;
     text-align: left;
     padding: 15px;
     width: 50%;
@@ -278,7 +278,6 @@
 
   .table-container {
     flex-grow: 2;
-    margin-left: 50px;
   }
 
   .user-profile-container input {
@@ -301,4 +300,12 @@
     font-size: 18px;
     margin-left:20px
   }
+  button{
+    background-color:mediumseagreen;
+    border: none;
+    padding: 5px 20px;
+    box-shadow: 5px 5px 10px rgb(165, 163, 163);
+    cursor: pointer;
+  }
+
 </style>

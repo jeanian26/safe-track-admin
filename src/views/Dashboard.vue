@@ -2,7 +2,7 @@
 <template>
   <div class="container">
     <div class="navbar-container">
-      <navbar></navbar>
+      <navBar></navBar>
       <pageHeader page="Dashboard" :user="user"></pageHeader>
     </div>
     <div class="page-container">
@@ -10,30 +10,58 @@
         <img alt="Vue logo" src="../assets/logo.png" />
         <h2>SafeTrack</h2>
         <h4>
-          Welcome to Safetrack security app,<br> Your own personal security system
+          Welcome to Safetrack security app,<br />
+          Your own personal security system
         </h4>
       </div>
-      <card header='Recent' cardTitle='Events' cardText= 0></card>
+      <card-component
+        header="Recent"
+        cardTitle="Events"
+        :cardText="eventsCount"
+      ></card-component>
     </div>
   </div>
 </template>
 <script>
-/* eslint-disable prettier/prettier */
-import navbar from "@/components/navbar.vue";
+import navBar from "@/components/navbar.vue";
 import pageHeader from "@/components/page-header.vue";
-import card from "@/components/card.vue";
+import cardComponent from "@/components/card.vue";
+import { getDatabase, ref, child, get } from "firebase/database";
 
 export default {
-  name: "Dashboard",
+  name: "Dash-board",
   components: {
-    navbar,
+    navBar,
     pageHeader,
-    card
+    cardComponent,
   },
   data() {
     return {
       user: "text",
+      eventsCount:'',
     };
+  },
+  mounted() {
+    this.getEvents();
+  },
+  methods: {
+    getEvents() {
+      const dbRef = ref(getDatabase());
+      get(child(dbRef, "Events/"))
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            let result = snapshot.val();
+            console.log(typeof result)
+            var size = Object.keys(result).length
+            this.eventsCount = size
+          } else {
+            console.log("No data available");
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    },
   },
 };
 </script>
@@ -45,7 +73,7 @@ export default {
   width: 100%;
   padding: 0 50px;
 }
-.page-container{
+.page-container {
   padding: 30px 0;
 }
 

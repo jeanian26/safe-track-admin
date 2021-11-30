@@ -19,7 +19,7 @@
 
 <script>
     export default {
-        name: 'navbar',
+        name: 'navBar',
         props: {
             msg: String
         }

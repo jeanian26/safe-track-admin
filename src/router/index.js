@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import Vue from "vue";
 import VueRouter from "vue-router";
 import Home from "../views/Home.vue";
@@ -20,7 +19,7 @@ const routes = [
   },
   {
     path: "/dashboard",
-    name: "Dashboard",
+    name: "Dash-board",
 
     component: () =>
       import("../views/Dashboard.vue"),
@@ -66,6 +65,13 @@ const routes = [
 
     component: () =>
       import("../views/Users.vue"),
+  },
+  {
+    path: "/usersadd/",
+    name: "newUsers",
+
+    component: () =>
+      import("../views/newuser.vue"),
   },
 
 ];

@@ -1,7 +1,7 @@
 <template>
     <div class="container">
         <div class="navbar-container">
-            <navbar></navbar>
+            <navBar></navBar>
             <pageHeader page="Video" :user="user"></pageHeader>
         </div>
         <div class="page-container">
@@ -33,14 +33,13 @@
     </div>
 </template>
 <script>
-    /* eslint-disable prettier/prettier */
-    import navbar from "@/components/navbar.vue";
+    import navBar from "@/components/navbar.vue";
     import pageHeader from "@/components/page-header.vue";
 
     export default {
-        name: "Dashboard",
+        name: "Dash-board",
         components: {
-            navbar,
+            navBar,
             pageHeader,
         },
         data() {
@@ -50,7 +49,6 @@
         },
         methods: {
             gotoLink(id) {
-                console.log(id)
                 this.$router.push({ path: '/events/' + id })
             },
         },
