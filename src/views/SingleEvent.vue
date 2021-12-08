@@ -15,11 +15,11 @@
             </tr>
             <tr>
               <td><strong>User ID:</strong></td>
-              <td>{{user}}</td>
+              <td>{{ user }}</td>
             </tr>
             <tr>
               <td><strong>Email Address:</strong></td>
-              <td>{{email}}</td>
+              <td>{{ email }}</td>
             </tr>
             <tr>
               <td><strong>Active:</strong></td>
@@ -29,15 +29,18 @@
             </tr>
             <tr>
               <td><strong>Name:</strong></td>
-              <td>{{name}}</td>
+              <td>{{ name }}</td>
             </tr>
             <tr>
               <td><strong>Phone Number:</strong></td>
-              <td>{{phone}}</td>
+              <td>{{ phone }}</td>
             </tr>
             <tr>
               <td><strong>Address:</strong></td>
-              <td>{{str_number}} {{street_name}} {{barangay}} {{city}} {{zipcode}}</td>
+              <td>
+                {{ str_number }} {{ street_name }} {{ barangay }} {{ city }}
+                {{ zipcode }}
+              </td>
             </tr>
             <tr>
               <td><strong>Last Known Location:</strong></td>
@@ -61,7 +64,7 @@
             </tr>
             <tr>
               <td><strong>Video link:</strong></td>
-              <td></td>
+              <td><a :href="url">Watch Video</a></td>
             </tr>
           </table>
           <div class="button-container">
@@ -76,6 +79,7 @@
 import navBar from "@/components/navbar.vue";
 import pageHeader from "@/components/page-header.vue";
 import { getDatabase, ref as refData, child, get } from "firebase/database";
+import { getStorage, ref, getDownloadURL } from "firebase/storage";
 
 export default {
   name: "Dash-board",
@@ -93,14 +97,15 @@ export default {
       time: "",
       user: "",
       active: false,
-      name:'',
-      email:'',
-
+      name: "",
+      email: "",
+      url:''
     };
   },
   mounted() {
     this.logParam();
     this.getEventDetails();
+    this.getDownloadURL()
   },
   methods: {
     gotoLink(id) {
@@ -127,6 +132,15 @@ export default {
         date.getSeconds()
       );
     },
+
+    getDownloadURL(filename) {
+      const storage = getStorage();
+      const storageRef = ref(storage, `videos/${filename}.mp4`);
+      getDownloadURL(storageRef).then((downloadURL) => {
+        console.log("File available at", downloadURL);
+        this.url = downloadURL
+      });
+    },
     getEventDetails() {
       const dbRef = refData(getDatabase());
       get(child(dbRef, `Events/${this.eventID}`))
@@ -141,7 +155,8 @@ export default {
             this.location = result.location;
             this.user = result.user;
             this.active = result.active;
-            this.getUserDetails(result.user)
+            this.getUserDetails(result.user);
+            this.getDownloadURL(result.filename)
           } else {
             console.log("No data available");
           }
@@ -149,13 +164,10 @@ export default {
         .catch((error) => {
           console.error(error);
         });
-        
-
-      
     },
-    getUserDetails(user){
+    getUserDetails(user) {
       const dbRef = refData(getDatabase());
-      console.log("event", user)
+      console.log("event", user);
       get(child(dbRef, `Accounts/${user}`)).then((snapshot) => {
         if (snapshot.exists()) {
           let result = snapshot.val();
@@ -171,22 +183,22 @@ export default {
         }
       });
       get(child(dbRef, `address/${user}`))
-          .then((snapshot) => {
-            if (snapshot.exists()) {
-              let result = snapshot.val();
-              this.barangay = result.barangay;
-              this.city = result.city;
-              this.str_number = result.str_number;
-              this.street_name = result.street_name;
-              this.zipcode = result.zipcode;
-            } else {
-              console.log("No data available");
-            }
-          })
-          .catch((error) => {
-            console.error(error);
-          });
-    }
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            let result = snapshot.val();
+            this.barangay = result.barangay;
+            this.city = result.city;
+            this.str_number = result.str_number;
+            this.street_name = result.street_name;
+            this.zipcode = result.zipcode;
+          } else {
+            console.log("No data available");
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    },
   },
 };
 </script>

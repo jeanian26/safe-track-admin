@@ -17,9 +17,9 @@
         <tr
           v-for="(value, key) in eventsList"
           :key="key"
-          @click="gotoLink(key)"
+          @click="gotoLink(value['filename'])"
         >
-          <td>{{ key }}</td>
+          <td>{{ value["filename"] }}</td>
           <td>{{ value["user"] }}</td>
           <td>{{ value["location"] }}</td>
           <td>{{ getDate(value["time"]) }}</td>
@@ -32,6 +32,7 @@
 import navBar from "@/components/navbar.vue";
 import pageHeader from "@/components/page-header.vue";
 import { getDatabase, ref, child, get } from "firebase/database";
+
 
 export default {
   name: "DashBoard",
@@ -54,23 +55,41 @@ export default {
       this.$router.push({ path: "/events/" + id });
     },
 
-    getDate(timestamp){
-      var date = new Date(timestamp)
+    getDate(timestamp) {
+      var date = new Date(timestamp);
 
-      return (date.getDate()+
-          "/"+(date.getMonth()+1)+
-          "/"+date.getFullYear()+
-          " "+date.getHours()+
-          ":"+date.getMinutes()+
-          ":"+date.getSeconds())
+      return (
+        date.getDate() +
+        "/" +
+        (date.getMonth() + 1) +
+        "/" +
+        date.getFullYear() +
+        " " +
+        date.getHours() +
+        ":" +
+        date.getMinutes() +
+        ":" +
+        date.getSeconds()
+      );
     },
     getEvents() {
       const dbRef = ref(getDatabase());
       get(child(dbRef, "Events/"))
         .then((snapshot) => {
           if (snapshot.exists()) {
-            let result = snapshot.val();
-            this.eventsList = result;
+            let results = snapshot.val();
+            console.log(typeof results);
+            // Convert to an Array
+            var sortable = [];
+            for (var result in results) {
+              sortable.push(results[result]);
+            }
+            sortable.sort(function (a, b) {
+              console.log(a.time, b.time)
+              return b.time - a.time;
+            });
+
+            this.eventsList = sortable;
           } else {
             console.log("No data available");
           }
@@ -78,8 +97,11 @@ export default {
         .catch((error) => {
           console.error(error);
         });
-
-        
+    },
+    sortFunction(a, b) {
+      var dateA = new Date(a.date).getTime();
+      var dateB = new Date(b.date).getTime();
+      return dateA > dateB ? 1 : -1;
     },
   },
 };
