@@ -8,8 +8,8 @@
 
       <div class="form-container">
         <input type="text" placeholder="Email Address" v-model="email" />
-        <button @click="resetPassword">Login</button>
-        <router-link class="router" to="/">Login</router-link>
+        <button @click="resetPassword">Reset Password</button>
+        <router-link class="router" to="/">Go to login</router-link>
       </div>
     </div>
   </div>

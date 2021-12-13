@@ -7,8 +7,16 @@
     <div class="page-container" id="user-profile">
       <div class="page-heading">
         <p>This Page contains the list users</p>
-        <!-- <button @click="addNewUser()">ADD NEW USER</button> -->
-        <!-- DIFFICULT TO IMPLEMENT -->
+        <br />
+        <br />
+        <input
+          type="text"
+          name="search"
+          class="search"
+          placeholder="Search.."
+          v-model="searchValue"
+          v-on:keyup="onChangeSearch"
+        />
       </div>
       <br />
       <table>
@@ -18,7 +26,7 @@
           <th>Name</th>
         </tr>
         <tr v-for="(value, key) in userList" :key="key" @click="gotoLink(key)">
-          <td>{{ key }}</td>
+          <td>{{ value["UserID"] }}</td>
           <td>{{ value["email"] }}</td>
           <td>{{ value["name"] }}</td>
         </tr>
@@ -40,19 +48,44 @@ export default {
   data() {
     return {
       user: "text",
-      userList: {},
+      userList: [],
+      searchValue: "",
+      orginalUserList: [],
     };
   },
   mounted() {
     this.getUser();
   },
   methods: {
+    onChangeSearch() {
+      this.userList = this.orginalUserList;
+      if (this.searchValue.length === 0) {
+        this.getUser();
+        return;
+      }
+      let originalList = this.userList;
+      let searchValue = this.searchValue;
+      let newlist = [];
+      Object.keys(originalList).forEach(function (key) {
+        if (key.toLowerCase().startsWith(searchValue.toLowerCase())) {
+          // console.log(typeof originalList[key]);
+          newlist.push(originalList[key]);
+        }
+      });
+      this.userList = newlist;
+      console.log(newlist);
+    },
+
+    // filter(data){
+    //   console.log("data",data)
+    //   return data
+    // },
     gotoLink(id) {
       console.log(id);
       this.$router.push({ path: "/users/" + id });
     },
     addNewUser() {
-      this.$router.push({ path: "/usersadd/"});
+      this.$router.push({ path: "/usersadd/" });
     },
     getUser() {
       const dbRef = refData(getDatabase());
@@ -61,6 +94,7 @@ export default {
           if (snapshot.exists()) {
             let result = snapshot.val();
             this.userList = result;
+            this.orginalUserList = result;
             // for (var key in result){
             //     console.log(result[key])
             // }
@@ -76,7 +110,7 @@ export default {
 };
 </script>
 
-<style >
+<style>
 .container {
   max-width: 1080px;
   margin: 0 auto;
@@ -116,17 +150,35 @@ tr:nth-child(even) {
   background-color: #dddddd;
 }
 #user-profile p {
-    display: inline-block;
+  display: inline-block;
 }
 #user-profile button {
-    float: right;
-    padding: 5px 20px;
-    margin-bottom: 10px;
+  float: right;
+  padding: 5px 20px;
+  margin-bottom: 10px;
 }
-button{
-    background-color:mediumseagreen;
-    border: none;
-    box-shadow: 5px 5px 10px rgb(165, 163, 163);
-    cursor: pointer;
-  }
+button {
+  background-color: mediumseagreen;
+  border: none;
+  box-shadow: 5px 5px 10px rgb(165, 163, 163);
+  cursor: pointer;
+}
+
+#user-profile > div > input {
+  width: 130px;
+  box-sizing: border-box;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  background-color: white;
+  background-position: 10px 10px;
+  background-repeat: no-repeat;
+  padding: 12px 20px 12px 20px;
+  transition: width 0.4s ease-in-out;
+}
+
+#user-profile > div > input:focus{
+  width: 100%;
+}
 </style>
+

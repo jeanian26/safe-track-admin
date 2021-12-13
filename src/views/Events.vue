@@ -7,6 +7,39 @@
     <div class="page-container">
       <p>This Page contains the events that was initiated by the users</p>
       <br />
+      <input
+        type="text"
+        name="search"
+        placeholder="Search.."
+        v-on:keyup="onChangeSearch"
+        v-model="searchValue"
+      />
+      <br />
+      <br />
+      <h3>Active</h3>
+      <table>
+        <tr>
+          <th>key</th>
+          <th>UserID</th>
+          <th>Location</th>
+          <th>Status</th>
+          <th>time</th>
+        </tr>
+        <tr
+          v-for="(value, key) in eventsList"
+          v-if="value['active'] === true"
+          :key="key"
+          @click="gotoLink(value['filename'])"
+        >
+          <td>{{ key }}</td>
+          <td>{{ value["user"] }}</td>
+          <td>{{ value["location"] }}</td>
+          <td>{{ value["active"] }}</td>
+          <td>{{ getDate(value["time"]) }}</td>
+        </tr>
+      </table>
+      <br />
+      <h3>Not Active</h3>
       <table>
         <tr>
           <th>key</th>
@@ -16,10 +49,11 @@
         </tr>
         <tr
           v-for="(value, key) in eventsList"
+          v-if="value['active'] === false"
           :key="key"
           @click="gotoLink(value['filename'])"
         >
-          <td>{{ value["filename"] }}</td>
+          <td>{{ key }}</td>
           <td>{{ value["user"] }}</td>
           <td>{{ value["location"] }}</td>
           <td>{{ getDate(value["time"]) }}</td>
@@ -33,7 +67,6 @@ import navBar from "@/components/navbar.vue";
 import pageHeader from "@/components/page-header.vue";
 import { getDatabase, ref, child, get } from "firebase/database";
 
-
 export default {
   name: "DashBoard",
   components: {
@@ -44,6 +77,8 @@ export default {
     return {
       user: "text",
       eventsList: {},
+      searchValue: "",
+      originalEvent: {},
     };
   },
   mounted() {
@@ -53,6 +88,28 @@ export default {
     gotoLink(id) {
       console.log(id);
       this.$router.push({ path: "/events/" + id });
+    },
+    onChangeSearch() {
+      this.eventsList = this.originalEvent;
+      if (this.searchValue.length === 0) {
+        this.getEvents();
+        return;
+      }
+      let originalList = this.eventsList;
+      let newList;
+      for (let i = 0; i < originalList.length; i++) {
+        let value = originalList[i].user;
+        value = value.toLowerCase();
+
+        console.log(
+          this.searchValue,
+          value.startsWith(this.searchValue.toLowerCase())
+        );
+        if (value.startsWith(this.searchValue.toLowerCase())) {
+          newList.push(originalList[i]);
+        }
+      }
+      this.eventsList = newList;
     },
 
     getDate(timestamp) {
@@ -85,9 +142,10 @@ export default {
               sortable.push(results[result]);
             }
             sortable.sort(function (a, b) {
-              console.log(a.time, b.time)
+              console.log(a.time, b.time);
               return b.time - a.time;
             });
+            this.originalEvent = sortable;
 
             this.eventsList = sortable;
           } else {
@@ -145,5 +203,24 @@ th {
 
 tr:nth-child(even) {
   background-color: #dddddd;
+}
+</style>
+
+<style scoped>
+#app > div > div.page-container > input[type=text] {
+  width: 130px;
+  box-sizing: border-box;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  background-color: white;
+  background-position: 10px 10px;
+  background-repeat: no-repeat;
+  padding: 12px 20px 12px 20px;
+  transition: width 0.4s ease-in-out;
+}
+
+#app > div > div.page-container > input[type=text]:focus {
+  width: 100%;
 }
 </style>

@@ -138,4 +138,11 @@ span {
 .form-label {
   width: 100%;
 }
+.logout-button{
+    padding: 5px 20px;
+    margin-left: 20px;
+    border-radius: 10px;
+    color: white;
+    text-transform: uppercase;
+}
 </style>

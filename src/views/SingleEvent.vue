@@ -7,6 +7,17 @@
     <div class="page-container">
       <div class="user-profile-container">
         <div class="table-container">
+          <h3>Map Location</h3>
+          <iframe
+            width="100%"
+            height="450"
+            style="border: 0"
+            loading="lazy"
+            allowfullscreen
+            :src="mapURL"
+          >
+          </iframe>
+
           <h3>Event Details</h3>
           <table class="user-details-table">
             <tr>
@@ -24,7 +35,7 @@
             <tr>
               <td><strong>Active:</strong></td>
               <td>
-                <input type="checkbox" v-model="active" />
+                {{ active }}
               </td>
             </tr>
             <tr>
@@ -68,7 +79,8 @@
             </tr>
           </table>
           <div class="button-container">
-            <button>RESPOND</button>
+            <button class="respond" @click="resolve">RESPOND</button>
+            <button class="delete" @click="deleteEvent">DELETE</button>
           </div>
         </div>
       </div>
@@ -78,7 +90,14 @@
 <script>
 import navBar from "@/components/navbar.vue";
 import pageHeader from "@/components/page-header.vue";
-import { getDatabase, ref as refData, child, get } from "firebase/database";
+import {
+  getDatabase,
+  ref as refData,
+  child,
+  get,
+  update,
+  set
+} from "firebase/database";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 
 export default {
@@ -99,13 +118,14 @@ export default {
       active: false,
       name: "",
       email: "",
-      url:''
+      url: "",
+      mapURL: "",
     };
   },
   mounted() {
     this.logParam();
     this.getEventDetails();
-    this.getDownloadURL()
+    this.getDownloadURL();
   },
   methods: {
     gotoLink(id) {
@@ -138,7 +158,7 @@ export default {
       const storageRef = ref(storage, `videos/${filename}.mp4`);
       getDownloadURL(storageRef).then((downloadURL) => {
         console.log("File available at", downloadURL);
-        this.url = downloadURL
+        this.url = downloadURL;
       });
     },
     getEventDetails() {
@@ -156,7 +176,12 @@ export default {
             this.user = result.user;
             this.active = result.active;
             this.getUserDetails(result.user);
-            this.getDownloadURL(result.filename)
+            this.getDownloadURL(result.filename);
+            let convertedLocation = result.location;
+            convertedLocation = convertedLocation.replace(/\s/g, "+");
+            this.mapURL = `https://www.google.com/maps/embed/v1/place?key=AIzaSyALWJDjGJ4PDcJ5j7XZewfcdtlbwsQAxsw
+&q=${convertedLocation}&center=${result.lat},${result.long}&zoom=15`;
+            console.log(this.mapURL);
           } else {
             console.log("No data available");
           }
@@ -167,7 +192,6 @@ export default {
     },
     getUserDetails(user) {
       const dbRef = refData(getDatabase());
-      console.log("event", user);
       get(child(dbRef, `Accounts/${user}`)).then((snapshot) => {
         if (snapshot.exists()) {
           let result = snapshot.val();
@@ -198,6 +222,23 @@ export default {
         .catch((error) => {
           console.error(error);
         });
+    },
+    resolve() {
+      const updates = {};
+      const db = getDatabase();
+      updates[`/Events/${this.filename}/active`] = false;
+      update(refData(db), updates)
+        .then(() => {
+          alert("success");
+          this.$router.push({ path: "/events" });
+        })
+        .catch((error) => {
+          alert(error);
+        });
+    },
+    deleteEvent() {
+      const db = refData(getDatabase());
+      set(child(db, `Events/${this.filename}`), {});
     },
   },
 };
@@ -279,16 +320,27 @@ input[type="text"] {
   margin-top: 20px;
 }
 
-.button-container button {
+.button-container .respond {
   padding: 5px 20px;
   font-size: 18px;
   margin-left: 20px;
 }
-button {
+.respond {
   background-color: mediumseagreen;
   border: none;
   padding: 5px 20px;
   box-shadow: 5px 5px 10px rgb(165, 163, 163);
+  color: white;
   cursor: pointer;
+}
+
+.delete {
+  background-color: red;
+  color: white;
+  border: none;
+  padding: 5px 20px;
+  box-shadow: 5px 5px 10px rgb(165, 163, 163);
+  cursor: pointer;
+  margin-left: 20px;
 }
 </style>
