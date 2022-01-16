@@ -9,6 +9,7 @@ import { passAuth, checkLoggedIn } from "../firebase.service";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import Router from "../router";
 export default {
+  name: "AboutTable",
   data() {
     return {
       email: "",

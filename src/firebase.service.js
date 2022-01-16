@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { initializeApp } from "firebase/app";
 import {
   getAuth,

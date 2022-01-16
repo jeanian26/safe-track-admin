@@ -8,7 +8,7 @@
       <div class="user-profile-container">
         <div class="table-container">
           <h3>User Details</h3>
-          <table class="user-details-table" >
+          <table class="user-details-table">
             <tr>
               <td><strong>User ID:</strong></td>
               <td>{{ user }}</td>
@@ -71,8 +71,8 @@
             </tr>
           </table>
           <div class="button-container">
-            <button @click='updateAccounts'>SAVE</button>
-            <button @click='socialNetwork'>VIEW NETWORK</button>
+            <button @click="updateAccounts">SAVE</button>
+            <button @click="deleteUser" class="delete">DELETE USER</button>
           </div>
         </div>
       </div>
@@ -80,232 +80,267 @@
   </div>
 </template>
 <script>
-  import navBar from "@/components/navbar.vue";
-  import pageHeader from "@/components/page-header.vue";
-  import { getDatabase, ref as refData, child, get, update } from "firebase/database";
+import navBar from "@/components/navbar.vue";
+import pageHeader from "@/components/page-header.vue";
+import {
+  getDatabase,
+  ref as refData,
+  child,
+  get,
+  update,
+} from "firebase/database";
+const axios = require("axios");
+import Router from "../router";
 
-  export default {
-    name: "Dash-board",
-    components: {
-      navBar,
-      pageHeader,
+export default {
+  name: "Dash-board",
+  components: {
+    navBar,
+    pageHeader,
+  },
+  data() {
+    return {
+      user: this.$route.params.id,
+      pincode: false,
+      fingerprint: false,
+      admin: false,
+      email: "",
+      name: "",
+      phone: "",
+      status: false,
+      shake: false,
+      barangay: "",
+      city: "",
+      str_number: "",
+      street_name: "",
+      zipcode: "",
+      url:'http://127.0.0.1:5000'
+    };
+  },
+  mounted() {
+    this.logParam();
+    this.getAccount();
+  },
+  methods: {
+    gotoLink(id) {
+      console.log(id);
+      this.$router.push({ path: "/events/" + id });
     },
-    data() {
-      return {
-        user: this.$route.params.id,
-        pincode: false,
-        fingerprint: false,
-        admin: false,
-        email: "",
-        name: "n/a",
-        phone: "n/a",
-        status: false,
-        shake: false,
-        barangay: "n/a",
-        city: "n/a",
-        str_number: "n/a",
-        street_name: "n/a",
-        zipcode: "n/a",
-      };
+    logParam() {
+      console.log(this.$route.params.id);
     },
-    mounted() {
-      this.logParam();
-      this.getAccount();
-    },
-    methods: {
-      gotoLink(id) {
-        console.log(id);
-        this.$router.push({ path: "/events/" + id });
-      },
-      logParam() {
-        console.log(this.$route.params.id);
-      },
-      getAccount() {
-        const dbRef = refData(getDatabase());
-        get(child(dbRef, `Accounts/${this.user}`))
-          .then((snapshot) => {
-            if (snapshot.exists()) {
-              let result = snapshot.val();
-              this.admin = result.admin;
-              this.email = result.email;
-              this.name = result.name;
-              this.phone = result.phone;
-              if (result.status === "active") {
-                this.status = true;
-              }
-            } else {
-              console.log("No data available");
+    getAccount() {
+      const dbRef = refData(getDatabase());
+      get(child(dbRef, `Accounts/${this.user}`))
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            let result = snapshot.val();
+            this.admin = result.admin;
+            this.email = result.email;
+            this.name = result.name;
+            this.phone = result.phone;
+            if (result.status === "active") {
+              this.status = true;
             }
-          })
-          .catch((error) => {
-            console.error(error);
-          });
-        get(child(dbRef, `Shake/${this.user}`))
-          .then((snapshot) => {
-            if (snapshot.exists()) {
-              let result = snapshot.val();
-              this.shake = result.Activate
-            } else {
-              console.log("No data available");
-            }
-          })
-          .catch((error) => {
-            console.error(error);
-          });
-        get(child(dbRef, `address/${this.user}`))
-          .then((snapshot) => {
-            if (snapshot.exists()) {
-              let result = snapshot.val();
-              this.barangay = result.barangay;
-              this.city = result.city;
-              this.str_number = result.str_number;
-              this.street_name = result.street_name;
-              this.zipcode = result.zipcode;
-            } else {
-              console.log("No data available");
-            }
-          })
-          .catch((error) => {
-            console.error(error);
-          });
-        get(child(dbRef, `fingerprint/${this.user}`))
-          .then((snapshot) => {
-            if (snapshot.exists()) {
-              let result = snapshot.val();
-              this.fingerprint = result.Activate
-              console.log(result.Activate)
-            } else {
-              console.log("No data available");
-            }
-          })
-          .catch((error) => {
-            console.error(error);
-          });
-      },
-
-      updateAccounts() {
-        const updates = {};
-        const db = getDatabase();
-
-        updates[`/Accounts/${this.user}/name`] = this.name;
-        updates[`/Accounts/${this.user}/phone`] = this.phone;
-        updates[`/Accounts/${this.user}/admin`] = this.admin;
-        updates[`/Shake/${this.user}/Activate`] = this.shake;
-        updates[`/address/${this.user}/barangay`] = this.barangay;
-        updates[`/address/${this.user}/city`] = this.city;
-        updates[`/address/${this.user}/str_number`] = this.str_number;
-        updates[`/address/${this.user}/street_name`] = this.street_name;
-        updates[`/address/${this.user}/zipcode`] = this.zipcode;
-        updates[`/fingerprint/${this.user}/Activate`] = this.fingerprint;
-        updates[`/pin/${this.user}/Activate`] = this.pincode;
-
-        if (this.status === true) {
-          updates[`/Accounts/${this.user}/status`] = "active";
-        } else {
-          updates[`/Accounts/${this.user}/status`] = "not active";
-        }
-
-        update(refData(db), updates).then(() => {
-          alert("success")
-        }).catch(() => {
-          alert("error")
+          } else {
+            console.log("No data available");
+          }
+        })
+        .catch((error) => {
+          console.error(error);
         });
+      get(child(dbRef, `Shake/${this.user}`))
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            let result = snapshot.val();
+            this.shake = result.Activate;
+          } else {
+            console.log("No data available");
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+      get(child(dbRef, `address/${this.user}`))
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            let result = snapshot.val();
+            this.barangay = result.barangay;
+            this.city = result.city;
+            this.str_number = result.str_number;
+            this.street_name = result.street_name;
+            this.zipcode = result.zipcode;
+          } else {
+            console.log("No data available");
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+      get(child(dbRef, `fingerprint/${this.user}`))
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            let result = snapshot.val();
+            this.fingerprint = result.Activate;
+            console.log(result.Activate);
+          } else {
+            console.log("No data available");
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    },
 
-      },
-      socialNetwork(){
-        console.log('click')
+    updateAccounts() {
+      const updates = {};
+      const db = getDatabase();
+
+      updates[`/Accounts/${this.user}/name`] = this.name;
+      updates[`/Accounts/${this.user}/phone`] = this.phone;
+      updates[`/Accounts/${this.user}/admin`] = this.admin;
+      updates[`/Shake/${this.user}/Activate`] = this.shake;
+      updates[`/address/${this.user}/barangay`] = this.barangay;
+      updates[`/address/${this.user}/city`] = this.city;
+      updates[`/address/${this.user}/str_number`] = this.str_number;
+      updates[`/address/${this.user}/street_name`] = this.street_name;
+      updates[`/address/${this.user}/zipcode`] = this.zipcode;
+      updates[`/fingerprint/${this.user}/Activate`] = this.fingerprint;
+      updates[`/pin/${this.user}/Activate`] = this.pincode;
+
+      if (this.status === true) {
+        updates[`/Accounts/${this.user}/status`] = "active";
+      } else {
+        updates[`/Accounts/${this.user}/status`] = "not active";
+      }
+
+      update(refData(db), updates)
+        .then(() => {
+          alert("Success Saving Account");
+          this.$router.push({ path: "/Users" });
+        })
+        .catch(() => {
+          alert("error");
+        });
+    },
+    deleteUser() {
+      var confirmDelete = window.confirm("Delete User?");
+      if (confirmDelete) {
+        let id = this.user;
+        axios
+          .delete(`${this.url}?uid=${id}`, {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          })
+          .then((r) => {
+            console.log(r);
+            Router.push("/Users");
+          })
+          .catch((e) => alert(e));
+      } else {
+        return;
       }
     },
-  };
+  },
+};
 </script>
 
 <style>
-  .container {
-    max-width: 1080px;
-    margin: 0 auto;
-    width: 100%;
-    padding: 0 50px;
-  }
+.container {
+  max-width: 1080px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 50px;
+}
 
-  .page-container {
-    padding: 30px 0;
-  }
+.page-container {
+  padding: 30px 0;
+}
 
-  .welcome-container {
-    display: flex;
-    flex-direction: column;
-    align-content: flex-start;
-    align-items: center;
-  }
+.welcome-container {
+  display: flex;
+  flex-direction: column;
+  align-content: flex-start;
+  align-items: center;
+}
 
-  .welcome-container img {
-    max-width: 300px;
-  }
+.welcome-container img {
+  max-width: 300px;
+}
 
-  .table {
-    font-family: arial, sans-serif;
-    border-collapse: collapse;
-    width: 100%;
-  }
+.table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
 
-  .user-details-table td,
-  .user-details-table th {
-    border: none !important;
-    text-align: left;
-    padding: 15px;
-    width: 50%;
-  }
+.user-details-table td,
+.user-details-table th {
+  border: none !important;
+  text-align: left;
+  padding: 15px;
+  width: 50%;
+}
 
-  .user-details-table tr:nth-child(even) {
-    background-color: #ffffff;
-  }
+.user-details-table tr:nth-child(even) {
+  background-color: #ffffff;
+}
 
-  .user-details-table tr {
-    border-bottom: 1px solid #d9d9d9 !important;
-  }
+.user-details-table tr {
+  border-bottom: 1px solid #d9d9d9 !important;
+}
 
-  .user-profile-container {
-    display: flex;
-    padding: 50px;
-    margin-top: 2 0px;
-    border: 1px solid #d9d9d9;
-  }
+.user-profile-container {
+  display: flex;
+  padding: 50px;
+  margin-top: 2 0px;
+  border: 1px solid #d9d9d9;
+}
 
-  .user-profile-container .profile-image img {
-    border-radius: 150px;
-    max-width: 10em;
-  }
+.user-profile-container .profile-image img {
+  border-radius: 150px;
+  max-width: 10em;
+}
 
-  .table-container {
-    flex-grow: 2;
-  }
+.table-container {
+  flex-grow: 2;
+}
 
-  .user-profile-container input {
-    border: none;
-    outline: none;
-  }
+.user-profile-container input {
+  border: none;
+  outline: none;
+}
 
-  input[type="text"] {
-    width: 100%;
-  }
+input[type="text"] {
+  width: 100%;
+}
 
-  .button-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
-  }
+.button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
 
-  .button-container button {
-    padding: 5px 20px;
-    font-size: 18px;
-    margin-left:20px
-  }
-  button{
-    background-color:mediumseagreen;
-    border: none;
-    padding: 5px 20px;
-    box-shadow: 5px 5px 10px rgb(165, 163, 163);
-    cursor: pointer;
-  }
-
+.button-container button {
+  padding: 5px 20px;
+  font-size: 18px;
+  margin-left: 20px;
+}
+button {
+  background-color: mediumseagreen;
+  border: none;
+  padding: 5px 20px;
+  box-shadow: 5px 5px 10px rgb(165, 163, 163);
+  cursor: pointer;
+}
+.delete {
+  background-color: red;
+  color: white;
+  border: none;
+  padding: 5px 20px;
+  box-shadow: 5px 5px 10px rgb(165, 163, 163);
+  cursor: pointer;
+  margin-left: 20px;
+}
 </style>

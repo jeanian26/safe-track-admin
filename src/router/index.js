@@ -73,6 +73,11 @@ const routes = [
     component: () =>
       import("../views/newuser.vue"),
   },
+  {
+    path: '*',
+    name: 'NotFound',
+    component: () => "../views/404.vue"
+  }
 
 ];
 
